@@ -1,0 +1,71 @@
+*******************************************UK Road Safety Proj**********************************
+
+
+/*1. Evaluate the median severity value of accidents caused by various Motorcycles.*/
+
+with cte1 as (
+select vt.vehicle_type,a.accident_severity
+,row_number() over(partition by vt.vehicle_type order by accident_severity) as rn1
+,count(1) over(partition by vt.vehicle_type) as total_cnt
+from accident a
+inner join vehicles v on a.accident_index=v.accident_index
+inner join vehicle_types vt on v.vehicle_type=vt.vehicle_code
+where vt.vehicle_type like '%Motorcycle%'
+)
+select vehicle_type,round(avg(accident_severity),2) as median_accident_severity 
+from cte1
+where rn1 between total_cnt*1.0/2 and total_cnt*1.0/2+1
+group by vehicle_type;
+
+
+
+/*2. Evaluate Accident Severity and Total Accidents per Vehicle Type*/
+
+SELECT VT.vehicle_type,A.accident_severity AS ACCIDENT_SEVERITY,COUNT(A.accident_INDEX) AS Total_Accidents FROM ACCIDENT A 
+INNER JOIN VEHICLES V ON A.accident_index=V.accident_index
+INNER JOIN vehicle_types VT ON V.vehicle_type=VT.vehicle_code 
+GROUP BY 1,2
+ORDER BY 3 DESC
+
+/*3. Calculate the Average Severity by vehicle type.*/
+
+select vt.vehicle_type as vehicle_type, avg(a.accident_severity) as average_accident_severity from
+accident a
+inner join vehicles v on a.accident_index=v.accident_index
+inner join vehicle_types vt on v.vehicle_type=vt.vehicle_code
+group by 1
+order by 2 desc;
+
+/*4. Calculate the Average Severity and Total Accidents by Motorcycle.*/
+
+select vt.vehicle_type as vehicle_type,count(a.accident_index) as total_accidents, avg(a.accident_severity) as average_accident_severity 
+from accident a
+inner join vehicles v on a.accident_index=v.accident_index
+inner join vehicle_types vt on v.vehicle_type=vt.vehicle_code
+where vt.vehicle_type like '%Motorcycle%'
+group by 1
+order by 2 desc;
+
+
+
+
+****************************************************cia_population**************************************
+
+
+/*1. Which country has the highest population?*/
+Select * from facts where population=(select max(population) from facts)
+
+/*2. Which country has the least number of people?*/
+Select * from facts where population=(select min(population) from facts)
+
+/*3. Which country is witnessing the highest population growth?*/
+select * from facts where population_growth_rate=(select max(population_growth_rate) from facts)
+
+/*4. Which country has an extraordinary number for the population?*/
+select * from facts order by population desc limit 1
+
+/*5. Which is the most densely populated country in the world?*/
+with cte_fact as(
+select *,round((population/area),2) as desnse_ratio from facts)
+select * from cte_fact order by desnse_ratio desc limit 1
+
